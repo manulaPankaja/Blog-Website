@@ -1,0 +1,13 @@
+<%- include("header.ejs"); -%>
+<h1>Home</h1>
+<p><%= startingContent %> </p>
+
+<% composeItems.forEach(function(item) { %>
+    <h1><%= item.title %> </h1>
+    <% let text = item.title %>
+    <p><%= item.post.substring(0, 100) + "..." %> 
+    <a href="/posts/<%= item.title %>">Read More</a></p>
+    <% console.log(item.title); %>
+    <% }); %>
+
+<%- include("footer"); -%>
