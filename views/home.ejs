@@ -6,7 +6,7 @@
     <h1><%= item.title %> </h1>
     <% let text = item.title %>
     <p><%= item.post.substring(0, 100) + "..." %> 
-    <a href="/posts/<%= item.title %>">Read More</a></p>
+    <a href="/posts/<%= item._id %>">Read More</a></p> 
     <% console.log(item.title); %>
     <% }); %>
 

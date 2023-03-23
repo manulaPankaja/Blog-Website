@@ -15,16 +15,31 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
 
-
+//mongoose start
 mongoose.connect("mongodb://127.0.0.1:27017/blogwebsiteDB")
 
-let composeItems = [];
+//defines a schema for mongoose called postsSchema
+const postsSchema = new mongoose.Schema({
+  title:String,
+  post:String
+});
+
+//creates a Mongoose model called "Post" using the previously defined "postsSchema"
+const Post = mongoose.model("Post", postsSchema);
+
 
 app.get('/', function(req,res){
-  res.render('home',{
-    startingContent: homeStartingContent,composeItems, 
-    composeItems:composeItems
+  Post.find()
+  .then((results)=>{
+    res.render('home',{
+      startingContent: homeStartingContent,results, 
+      composeItems:results //composeItems are the results from the Post.find() method. Those results are added in to the foreach loop in the home.ejs file. In the home.ejs file those results gets as item and <a href="/posts/<%= item._id %>"> in this code gets the item id.
+    });
+  })
+  .catch((err)=>{
+    console.error(err);
   });
+  
 });
 
 app.get('/about', function(req,res){
@@ -40,57 +55,53 @@ app.get('/compose', function(req,res){
 });
 
 
-
-
 app.post('/compose', function(req,res){
-  const compose={
-    title: req.body.text,
-    post: req.body.textArea
-  }
-  composeItems.push(compose);
+
+  postTitle= req.body.text;
+  postPost= req.body.textArea;
+
+  //creating new instance of the Mongoose model "Post" and assigns it to a constant called "post"
+  const post = new Post({
+    title:postTitle,
+    post:postPost
+  });
+
+  //save it to the database
+  post.save();
+
+  //redirect to the home page
   res.redirect('/');
 });
 
+// app.get('/posts/:text', function(req,res){
+//   const requestedTitle = _.lowerCase(req.params.text);
+//   composeItems.forEach(function(composeItem){
+//     const storedTitle=_.lowerCase(composeItem.title);
+//     if(storedTitle===requestedTitle){
+//       res.render('post',{
+//         requestedTitle: composeItem.title, 
+//         requestedBody:composeItem.post
+//       });
+//     }
+//   });
+  
+  
+// });
 
-app.get('/posts/:text', function(req,res){
-  const requestedTitle = _.lowerCase(req.params.text);
-  composeItems.forEach(function(composeItem){
-    const storedTitle=_.lowerCase(composeItem.title);
-    if(storedTitle===requestedTitle){
-      res.render('post',{
-        requestedTitle: composeItem.title, 
-        requestedBody:composeItem.post
-      });
-    }
+app.get('/posts/:postId', function(req,res){
+  const requestedPostId = req.params.postId; //req.params.postId is a property of the req object in the Express.js framework. It is used to extract the value of a URL parameter named "postId" from the requested URL.
+  Post.findOne({_id:requestedPostId})
+  .then((posts)=>{
+    res.render('post',{
+      requestedTitle: posts.title, // assigned the title which is created in the compose view, to the requestedTitle property
+      requestedBody:posts.post // assigned the post which is created in the compose view, to the requestedBody property
+    });
+  })
+  .catch((err)=>{
+    console.error(err);
   });
-  
-  
-});
-
-app.get('/posts/:title', function(req,res){
-  const requestedTitle = _.lowerCase(req.params.text);
-  composeItems.forEach(function(composeItem){
-    const storedTitle=_.lowerCase(composeItem.title);
-    if(storedTitle===requestedTitle){
-      res.render('post',{
-        requestedTitle: composeItem.title, 
-        requestedBody:composeItem.post
-      });
-    }
-  });
-  
-  
 });
  
-
-
-
-
-
-
-
-
-
 
 app.listen(3000, function() {
   console.log("Server started on port 3000");
